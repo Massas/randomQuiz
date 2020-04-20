@@ -28,33 +28,34 @@ namespace randomQuiz
         {
             debugLabel.Text = debugMsg + "ContentsForm_Load() START";
 
-            //コンテンツの開始
+            //コンテンツ画面のメイン関数
             ContentsStart();
 
         }
 
+        //コンテンツ画面のメイン関数
         private void ContentsStart()
         {
             debugLabel.Text = debugMsg + "ContentsStart() START";
 
-            //画面の初期化
+            //画面の初期化する関数
             ScreenUpdate_Initial();
 
-            //回答モードにより画面の描画を変える
+            //回答モードにより画面の描画を変える関数
             ScreenUpdate_ContentsType();
 
             //設定値を読みだす
             String pictureFolderPath = Properties.Settings.Default.picture_folderpath;
 
-            //エクセルファイルからデータを読み出しメモリ上の配列にマッピングする
+            //エクセルファイルからデータを読み出しメモリ上の配列にマッピングする関数
             String[,] arr = ExtractExcelByClosedXML();
 
-            //表示する顔写真を決定する
-            String pictureFile = "";
+
             //設定値から何番目の顔写真から始めるか設定する
             int inputNum = Properties.Settings.Default.questioning_index;
 
-            PickupPicture(arr,out pictureFile,inputNum,out int indexNum);
+            //表示する顔写真を決定する関数
+            PickupPicture(arr,out string pictureFile,inputNum,out int indexNum);
 
             if (pictureFile == "終了")
             {
@@ -67,56 +68,23 @@ namespace randomQuiz
             String pictureFullPath = pictureFolderPath + "\\" + pictureFile;
 
 
-            //正解を決定する
+            //正解を決定する関数
             String rightName = DecideRightAnswer(arr, pictureFile);
+
             //出題される顔写真が決まった時点で、正答を画面上に設定して、Unvisibleにしておく
             rightAnswerTextBox.Text = rightName;
 
-            //顔写真を表示する
+            //顔写真を表示する関数
             ResizeAndDisplay(pictureFullPath);
 
         }
 
-        private void ScreenUpdate_ContentsType()
-        {
-            String questionType = Properties.Settings.Default.question_type;
-
-            switch (questionType)
-            {
-                case "１．自由回答方式":
-                    ScreenUpdate_free();
-                    break;
-                case "２．YES/NO方式":
-                    ScreenUpdate_free();
-                    break;
-                case "３．3択形式":
-                    ScreenUpdate_free();
-                    break;
-                case "４．入力なし方式":
-                    ScreenUpdate_noneInput();
-                    break;
-            }
-        }
-
-        private void ScreenUpdate_free()
-        {
-            debugLabel.Text = debugMsg + "ScreenUpdate_free() START";
-        }
-
-        private void ScreenUpdate_noneInput()
-        {
-            debugLabel.Text = debugMsg + "ScreenUpdate_noneInput() START";
-            answerLabel.Visible = false;
-            textBox1.Visible = false;
-            answerButton.Text = "正解を見る！";
-        }
-
-        private void PictureBox1_Click(object sender, EventArgs e)
-        {
-            debugLabel.Text = debugMsg + "PictureBox1_Click() START";
-        }
-
         //2つの戻り値を返す
+        //問題として表示する画像を選択する関数
+        //第一引数：正解の名前と画像ファイル名を持った配列
+        //第二引数：画像ファイル名(戻り値)
+        //第三引数：配列の何番目の要素から始めるか指定する値
+        //第四引数：出題する配列の要素番号(戻り値)
         private void PickupPicture(String[,] array,out String picName,int inputNum,out int indexNum)
         {
             picName = "";
@@ -157,6 +125,9 @@ namespace randomQuiz
             }
         }
 
+        //ランダムに数値を生成する関数
+        //第一引数：配列の要素数
+        //戻り値：ランダムに生成した整数
         private int GetRandomNum(int fullIndexNum)
         {
             Random random = new System.Random();
@@ -164,6 +135,8 @@ namespace randomQuiz
             return randomNum;
         }
 
+        //PictureBoxに画像をリサイズしてから表示する関数
+        //第一引数：PictureBoxに表示する画像のフルパス
         private void ResizeAndDisplay(String filePath)
         {
             debugLabel.Text = debugMsg + "ResizeAndDisplay() START";
@@ -186,17 +159,22 @@ namespace randomQuiz
 
         }
 
-        private void TextBox1_TextChanged(object sender, EventArgs e)
-        {
-            debugLabel.Text = debugMsg + "TextBox1_TextChanged() START";
-        }
-
+        //回答ボタンクリック関数
         private void AnswerButton_Click(object sender, EventArgs e)
         {
             debugLabel.Text = debugMsg + "AnswerButton_Click() START";
 
+            //答え合わせを行う
+            CheckingAnswer();
+        }
+
+        //答え合わせを行う関数
+        private void CheckingAnswer()
+        {
+            debugLabel.Text = debugMsg + "CheckingAnswer() START";
+
             //回答を正答と比較する
-            if(textBox1.Text == rightAnswerTextBox.Text)
+            if (textBox1.Text == rightAnswerTextBox.Text)
             {
                 debugLabel.Text = debugMsg + "AnswerButton_Click() 正解！";
                 ScreenUpdate_RightAnswer();
@@ -206,73 +184,29 @@ namespace randomQuiz
                 debugLabel.Text = debugMsg + "AnswerButton_Click() 不正解！";
                 ScreenUpdate_MistakeAnswer();
             }
-
         }
 
-        private void ScreenUpdate_Initial()
+        //キーが押された場合の処理を実行する関数
+        //Lキー：入力なし方式で正解の場合の入力
+        //Kキー：入力なし方式で不正解の場合の入力
+        private void AnswerButton_KeyUp(object sender,KeyEventArgs e)
         {
-            debugLabel.Text = debugMsg + "ScreenUpdate_Initial() START";
-
-            textBox1.Text = "";
-
-            //正解
-            collectAnswerLabel.Visible = false;
-            rightAnswerTitle.Visible = false;
-            rightAnswerTextBox.Visible = false;
-            rightAnswerAssistLabel.Visible = false;
-
-            //不正解
-            mistakeAnswerLabel.Visible = false;
-            rightAnswerTitle.Visible = false;
-            rightAnswerTextBox.Visible = false;
-            rightAnswerAssistLabel.Visible = false;
-
+            if(e.KeyData == Keys.L)
+            {
+                debugLabel.Text = debugMsg + "AnswerButton_KeyUp() 正解！";
+                //正解なので、正解の時用の画面更新関数を実行する
+                ScreenUpdate_RightAnswer();
+            }
+            else if(e.KeyData == Keys.K)
+            {
+                debugLabel.Text = debugMsg + "AnswerButton_KeyUp() 不正解！";
+                //不正解なので、不正解の時用の画面更新関数を実行する
+                ScreenUpdate_MistakeAnswer();
+            }
         }
 
-        private void ScreenUpdate_RightAnswer()
-        {
-            debugLabel.Text = debugMsg + "ScreenUpdate_RightAnswer() START";
-
-            //不正解
-            mistakeAnswerLabel.Visible = false;
-
-            //正解
-            if(Properties.Settings.Default.question_type != "４．入力なし方式")
-            {
-                collectAnswerLabel.Visible = true;
-            }
-            else
-            {
-                collectAnswerLabel.Visible = false;
-            }
-            rightAnswerTitle.Visible = true;
-            rightAnswerTextBox.Visible = true;
-            rightAnswerAssistLabel.Visible = true;
-
-        }
-
-        private void ScreenUpdate_MistakeAnswer()
-        {
-            debugLabel.Text = debugMsg + "ScreenUpdate_MistakeAnswer() START";
-
-            //正解
-            collectAnswerLabel.Visible = false;
-
-            //不正解
-            if (Properties.Settings.Default.question_type != "４．入力なし方式")
-            {
-                mistakeAnswerLabel.Visible = true;
-            }
-            else
-            {
-                mistakeAnswerLabel.Visible = false;
-            }
-            rightAnswerTitle.Visible = true;
-            rightAnswerTextBox.Visible = true;
-            rightAnswerAssistLabel.Visible = true;
-            
-        }
-
+        //ClosedXMLを使ってエクセルファイルの内容を配列にマッピングする関数
+        //戻り値：2次元配列
         private String[,] ExtractExcelByClosedXML()
         {
             String filePath = Properties.Settings.Default.excel_filepath;
@@ -314,11 +248,14 @@ namespace randomQuiz
 
         }
 
+        //表示された画像に対して正解の名前を設定する関数
+        //第一引数：正解の名前と画像ファイル名を持った配列
+        //第二引数：コンテンツ画面に表示されている画像ファイル名
+        //戻り値：正解の名前
         private string DecideRightAnswer(String[,] arr,String pictureFile)
         {
             String rightName = null;
 
-            //int indexNum = Array.IndexOf(arr, pictureFile);
             int arrayLength = arr.GetLength(0);
 
             for(int indexNum = 0; indexNum < arrayLength; indexNum++)
@@ -333,10 +270,139 @@ namespace randomQuiz
             return rightName;
         }
 
-        private void nextQuestionButton_Click(object sender, EventArgs e)
+        //次の問題へ進むボタンがクリックされた時の関数
+        //画面を初期化して、再度コンテンツを開始する
+        private void NextQuestionButton_Click(object sender, EventArgs e)
         {
             ScreenUpdate_Initial();
             ContentsStart();
         }
+
+        //コンテンツ画面の初期化関数
+        private void ScreenUpdate_Initial()
+        {
+            debugLabel.Text = debugMsg + "ScreenUpdate_Initial() START";
+
+            textBox1.Text = "";
+
+            //正解
+            collectAnswerLabel.Visible = false;
+            rightAnswerTitle.Visible = false;
+            rightAnswerTextBox.Visible = false;
+            rightAnswerAssistLabel.Visible = false;
+
+            //不正解
+            mistakeAnswerLabel.Visible = false;
+            rightAnswerTitle.Visible = false;
+            rightAnswerTextBox.Visible = false;
+            rightAnswerAssistLabel.Visible = false;
+
+            //画面のフォーカスを回答ボタンに与える
+            answerButton.Focus();
+
+        }
+
+        //回答方式に合わせて画面を更新する処理
+        private void ScreenUpdate_ContentsType()
+        {
+            //回答方式の設定値を読み出す
+            String questionType = Properties.Settings.Default.question_type;
+
+            switch (questionType)
+            {
+                case "１．自由回答方式":
+                    ScreenUpdate_free();
+                    break;
+                case "２．YES/NO方式":
+                    ScreenUpdate_free();
+                    break;
+                case "３．3択形式":
+                    ScreenUpdate_free();
+                    break;
+                case "４．入力なし方式":
+                    ScreenUpdate_noneInput();
+                    break;
+            }
+        }
+
+        //回答が正解だった際のコンテンツ画面更新関数
+        private void ScreenUpdate_RightAnswer()
+        {
+            debugLabel.Text = debugMsg + "ScreenUpdate_RightAnswer() START";
+
+            //不正解
+            mistakeAnswerLabel.Visible = false;
+
+            //正解
+            if (Properties.Settings.Default.question_type != "４．入力なし方式")
+            {
+                collectAnswerLabel.Visible = true;
+            }
+            else
+            {
+                collectAnswerLabel.Visible = false;
+            }
+            rightAnswerTitle.Visible = true;
+            rightAnswerTextBox.Visible = true;
+            rightAnswerAssistLabel.Visible = true;
+
+            //次の問題へボタンにフォーカスを与える
+            nextQuestionButton.Focus();
+
+        }
+
+        //回答が不正解だった際のコンテンツ画面更新関数
+        private void ScreenUpdate_MistakeAnswer()
+        {
+            debugLabel.Text = debugMsg + "ScreenUpdate_MistakeAnswer() START";
+
+            //正解
+            collectAnswerLabel.Visible = false;
+
+            //不正解
+            if (Properties.Settings.Default.question_type != "４．入力なし方式")
+            {
+                mistakeAnswerLabel.Visible = true;
+            }
+            else
+            {
+                mistakeAnswerLabel.Visible = false;
+            }
+            rightAnswerTitle.Visible = true;
+            rightAnswerTextBox.Visible = true;
+            rightAnswerAssistLabel.Visible = true;
+
+            //次の問題へボタンにフォーカスを与える
+            nextQuestionButton.Focus();
+
+        }
+
+        //回答方式が"自由回答方式"の場合に画面を更新する関数
+        private void ScreenUpdate_free()
+        {
+            debugLabel.Text = debugMsg + "ScreenUpdate_free() START";
+        }
+
+        //回答方式が"入力なし方式"の場合に画面を更新する関数
+        private void ScreenUpdate_noneInput()
+        {
+            debugLabel.Text = debugMsg + "ScreenUpdate_noneInput() START";
+            answerLabel.Visible = false;
+            textBox1.Visible = false;
+            answerButton.Text = "正解を見る！";
+        }
+
+        //画像を表示するPictureBoxがクリックされた時の関数
+        private void PictureBox1_Click(object sender, EventArgs e)
+        {
+            debugLabel.Text = debugMsg + "PictureBox1_Click() START";
+        }
+
+        //回答用のテキストボックスの入力値が変わった際の関数
+        private void TextBox1_TextChanged(object sender, EventArgs e)
+        {
+            debugLabel.Text = debugMsg + "TextBox1_TextChanged() START";
+        }
+
     }
 }
